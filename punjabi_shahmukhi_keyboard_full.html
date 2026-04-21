@@ -1,0 +1,489 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#kb-app{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:16px;max-width:680px}
+#phone-frame{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:16px;overflow:hidden}
+#text-area-wrapper{padding:12px 14px;min-height:88px;border-bottom:0.5px solid var(--color-border-tertiary)}
+#text-display{font-size:16px;color:var(--color-text-primary);line-height:1.8;min-height:44px;word-break:break-all;direction:rtl;text-align:right;font-family:'Noto Nastaliq Urdu','Arabic UI Text',Arial,sans-serif}
+#text-display.ltr-mode{direction:ltr;text-align:left;font-family:var(--font-sans)}
+.cursor{display:inline-block;width:2px;height:1.1em;background:#2ECC71;vertical-align:text-bottom;animation:blink 1s step-end infinite;margin:0 1px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.composing{border-bottom:2px solid #2ECC71;color:#2ECC71}
+#lang-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px}
+.lang-pill{padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);transition:all .15s}
+.lang-pill.active{background:#2ECC71;border-color:#2ECC71;color:#fff}
+#candidate-bar{display:flex;align-items:center;min-height:44px;border-bottom:0.5px solid var(--color-border-tertiary);overflow-x:auto;scrollbar-width:none;background:var(--color-background-primary)}
+#candidate-bar::-webkit-scrollbar{display:none}
+.accent-strip{width:3px;height:44px;background:#2ECC71;flex-shrink:0}
+.candidate{padding:0 13px;height:44px;display:flex;align-items:center;font-size:15px;cursor:pointer;white-space:nowrap;color:var(--color-text-secondary);border-right:0.5px solid var(--color-border-tertiary);font-family:'Noto Nastaliq Urdu','Arabic UI Text',Arial,sans-serif;transition:background .1s;flex-shrink:0}
+.candidate:hover{background:var(--color-background-secondary)}
+.candidate.primary{color:#2ECC71;font-weight:500;font-size:16px}
+.candidate-ph{padding:0 14px;font-size:13px;color:var(--color-text-tertiary);font-style:italic;height:44px;display:flex;align-items:center}
+#keyboard{background:#ECEFF1;padding:4px 4px 8px}
+#keyboard.dk{background:#1A1A1A}
+.kb-row{display:flex;gap:3px;margin-bottom:3px;justify-content:center}
+.key{background:#fff;border:none;border-radius:6px;box-shadow:0 2px 0 #B0BEC5;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .06s,box-shadow .06s;height:42px;min-width:28px;flex:1;max-width:52px}
+.key.dk{background:#2D2D2D;box-shadow:0 2px 0 #111;color:#fff}
+.key:active,.key.pressed{transform:scale(0.9);box-shadow:none}
+.pc{font-size:17px;line-height:1;font-family:'Noto Nastaliq Urdu','Arabic UI Text',Arial,sans-serif}
+.key.eng .pc{font-family:var(--font-sans);font-size:15px}
+.sc{position:absolute;top:3px;right:4px;font-size:9px;color:#9E9E9E;font-family:var(--font-sans)}
+.ad{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:3px;height:3px;background:#2ECC71;border-radius:50%}
+.key.spl{background:#CFD8DC;color:#424242;flex:1.5;max-width:62px;font-size:13px}
+.key.spl.dk{background:#404040;color:#ccc}
+.key.sp{flex:5;max-width:200px;font-size:11px;color:#9E9E9E;font-family:var(--font-sans)}
+.key.ent{background:#2ECC71;color:#fff;flex:1.5;max-width:62px;font-size:16px}
+#mode-info{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--color-text-tertiary)}
+.dot{width:6px;height:6px;border-radius:50%;background:#2ECC71}
+#tbtn{padding:3px 9px;border-radius:20px;font-size:11px;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary)}
+#hint-bar{padding:6px 14px;font-size:11px;color:var(--color-text-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);direction:rtl;min-height:28px;line-height:1.6;background:var(--color-background-secondary)}
+</style>
+
+<div id="kb-app">
+<div id="phone-frame">
+
+<div id="lang-bar">
+  <div id="mode-info"><div class="dot"></div><span id="mlabel">پنجابی شاہمکھی</span></div>
+  <div style="display:flex;gap:5px;align-items:center">
+    <button class="lang-pill active" onclick="setLang('punjabi')">پنجابی</button>
+    <button class="lang-pill" onclick="setLang('urdu')">اردو</button>
+    <button class="lang-pill" onclick="setLang('english')">EN</button>
+    <button class="lang-pill" onclick="setLang('auto')">Auto</button>
+    <button id="tbtn" onclick="toggleDark()">🌙</button>
+  </div>
+</div>
+
+<div id="text-area-wrapper">
+  <div id="text-display"><span class="cursor"></span></div>
+</div>
+
+<div id="hint-bar">ایک حرف ٹائپ کریں — جملے خودبخود نظر آئیں گے</div>
+
+<div id="candidate-bar">
+  <div class="accent-strip"></div>
+  <div class="candidate-ph">شروع کریں...</div>
+</div>
+
+<div id="keyboard"></div>
+
+</div>
+</div>
+
+<script>
+const LAYOUTS={
+punjabi:[
+  [{p:'ق',s:'q',a:['ك']},{p:'و',s:'w',a:['ؤ']},{p:'ع',s:'e',a:['ء','ئ']},{p:'ط',s:'t',a:['ٹ','ت']},{p:'ظ',s:'z',a:['ز']},{p:'ذ',s:'d',a:['ڈ','د']},{p:'ز',s:'z',a:['ظ']},{p:'ر',s:'r',a:['ڑ']},{p:'ڑ',s:'R'}],
+  [{p:'ا',s:'a',a:['آ','إ','أ']},{p:'آ',s:'A'},{p:'ب',s:'b',a:['بھ']},{p:'پ',s:'p'},{p:'ت',s:'t',a:['ٹ','ط']},{p:'ٹ',s:'T'},{p:'ث',s:'s',a:['س','ص']},{p:'چ',s:'c',a:['ج']},{p:'ح',s:'h',a:['ہ','ھ']},{p:'خ',s:'x'}],
+  [{p:'د',s:'d',a:['ڈ']},{p:'ڈ',s:'D'},{p:'س',s:'s',a:['ش','ص','ث']},{p:'ش',s:'sh'},{p:'ص',s:'S'},{p:'ف',s:'f'},{p:'غ',s:'gh',a:['ع']},{p:'ک',s:'k',a:['ق','گ']},{p:'گ',s:'g'},{p:'ل',s:'l'}],
+  [{p:'م',s:'m'},{p:'ن',s:'n',a:['ں','ڻ']},{p:'ں',s:'N'},{p:'و',s:'v',a:['ؤ']},{p:'ہ',s:'h',a:['ح','ھ']},{p:'ی',s:'y',a:['ے','ئ']},{p:'ے',s:'Y'},{p:'ھ',s:'h'},{p:'۔',s:'.',a:['.',',','؟','!']},{p:'،',s:','}]
+],
+urdu:[
+  [{p:'ق',s:'q'},{p:'و',s:'w',a:['ؤ']},{p:'ع',s:'e'},{p:'ر',s:'r',a:['ڑ']},{p:'ی',s:'y',a:['ے','ئ']},{p:'ء',s:"'"},{p:'ا',s:'a',a:['آ']},{p:'ہ',s:'h',a:['ح','ھ']},{p:'ت',s:'t',a:['ط','ٹ']}],
+  [{p:'ص',s:'S',a:['س']},{p:'ث',s:'s'},{p:'د',s:'d',a:['ڈ','ذ']},{p:'ط',s:'T'},{p:'ب',s:'b'},{p:'پ',s:'p'},{p:'ج',s:'j',a:['چ']},{p:'چ',s:'c'},{p:'ز',s:'z',a:['ذ','ظ','ض']}],
+  [{p:'ش',s:'sh'},{p:'س',s:'s'},{p:'ک',s:'k',a:['گ','ق']},{p:'گ',s:'g'},{p:'ل',s:'l'},{p:'م',s:'m'},{p:'ن',s:'n',a:['ں']},{p:'ں',s:'N'},{p:'و',s:'v'},{p:'ے',s:'Y'}],
+  [{p:'ظ',s:'Z'},{p:'ض',s:'Z'},{p:'ذ',s:'D'},{p:'خ',s:'x'},{p:'ف',s:'f'},{p:'غ',s:'gh'},{p:'آ',s:'aa'},{p:'۔',s:'.',a:['.','؟']},{p:'،',s:','}]
+],
+english:[
+  ['q','w','e','r','t','y','u','i','o','p'].map(c=>({p:c,s:c.toUpperCase(),eng:true})),
+  ['a','s','d','f','g','h','j','k','l'].map(c=>({p:c,s:c.toUpperCase(),eng:true})),
+  ['z','x','c','v','b','n','m'].map(c=>({p:c,s:c.toUpperCase(),eng:true}))
+]};
+
+// ═══════════════════════════════════════════════════════════
+// MEGA PUNJABI SENTENCE + PREDICTION DATABASE
+// ═══════════════════════════════════════════════════════════
+
+// Full sentences indexed by first character and bigram
+const SENTENCES = [
+// ─── تسی ───────────────────────────────────────
+'تسی کیا حال اے؟','تسی کداں ہو؟','تسی ٹھیک ہو نا؟','تسی کِتھے جا رہے ہو؟',
+'تسی بہت چنگے ہو','تسی میرے یار ہو','تسی کدوں آؤگے؟','تسی کیا کھانا چاہندے ہو؟',
+'تسی اج کِتھے ہو؟','تسی کیا سوچ رہے ہو؟','تسی بہت ہوشیار ہو','تسی میری گل سنو',
+'تسی آپ ای فیصلہ کرو','تسی خوش رہو','تسی سدا مسکراتے رہو','تسی مینوں یاد کردے ہو؟',
+'تسی کِنّی دیر توں ایتھے ہو؟','تسی سچ کہہ رہے ہو','تسی جانندے ہو؟','تسی وڈے ہو گئے ہو',
+// ─── میں ────────────────────────────────────────
+'میں ٹھیک آں، شکریہ','میں تہانوں پیار کرنا آں','میں اج بہت خوش آں',
+'میں کل آواں گا','میں گھر جاندا آں','میں کم اتے جانا اے',
+'میں تینوں سمجھنا آں','میں تیری مدد کراں گا','میں سچ کہہ رہا آں',
+'میں اکیلا نہیں آں','میں پنجاب دا واسی آں','میں ساڈے گھر آواں گا',
+'میں تہاڈی گل منناں گا','میں ہُن چلدا آں','میں پانی پینا چاہنا آں',
+'میں روٹی کھانی اے','میں تھکیا ہویا آں','میں سوچاں گا فیر دساں گا',
+'میں تہاڈے نال آواں گا','میں دیر کراں گا تھوڑی جئی','میں معافی منگنا آں',
+'میں خوشی نال جاواں گا','میں تہانوں کدی نہیں بھلاں گا','میں دل نال کم کرنا آں',
+// ─── ساڈا / ساڈی / ساڈے ───────────────────────
+'ساڈا پنجاب بہت سوہنا اے','ساڈا گھر بہت چنگا اے','ساڈا خاندان بہت پیارا اے',
+'ساڈی ماں بہت چنگی اے','ساڈے گھر وچ سب خوش نے','ساڈا رشتہ سچا اے',
+'ساڈی دوستی ساری عمر رہے گی','ساڈے وطن نوں سلام','ساڈا مستقبل روشن اے',
+'ساڈی زبان پنجابی اے','ساڈے پنجاب دی مٹی سوہنی اے','ساڈا کم چنگا چل رہا اے',
+// ─── اوہ / اوہنے / اوہناں ──────────────────────
+'اوہ بہت چنگا بندہ اے','اوہ اج نہیں آئے','اوہنے بہت چنگا کیتا',
+'اوہ میرا یار اے','اوہ بہت محنتی اے','اوہ ہمیشہ سچ بولدا اے',
+'اوہناں نے رل کے کم کیتا','اوہ بہت خوش اے','اوہنے میری مدد کیتی',
+'اوہ دور چلا گیا','اوہ ہمیشہ یاد رہے گا','اوہ بہت پیارا بندہ اے',
+// ─── ایہ ────────────────────────────────────────
+'ایہ گل بہت ضروری اے','ایہ کم بہت اوکھا اے','ایہ بہت چنگا اے',
+'ایہ میرا گھر اے','ایہ ساڈی زبان اے','ایہ کیا ہویا؟',
+'ایہ سچ اے یا جھوٹ؟','ایہ موسم بہت سوہنا اے','ایہ کم تُسی کرو',
+'ایہ رستہ سہی اے','ایہ وقت قیمتی اے','ایہ بچہ بہت پیارا اے',
+// ─── اسی ────────────────────────────────────────
+'اسی رل کے جاواں گے','اسی پنجاب دے واسی آں','اسی سب بھائی بھائی آں',
+'اسی مل کے کم کرنے آں','اسی کدی نہیں ہاراں گے','اسی خوشیاں ونڈاں گے',
+'اسی اپنی ماں بولی دا مان رکھاں گے','اسی سدا اکٹھے رہاں گے',
+// ─── یار / دوست ──────────────────────────────────
+'یار تُسی کداں ہو؟','یار کدوں آؤگے؟','یار بہت دن ہو گئے','یار تینوں یاد کردے آں',
+'یار اج ملنے آؤ','یار دل کردا اے ملاں','یار زندگی بہت چھوٹی اے',
+'یار تیرے نال خوشی آندی اے','یار تُو سچا اے','یار فکر نہ کر',
+'دوست ساری عمر دا اے','دوستی سچی رکھو ہمیشہ','دوست ہووے تاں ایہو جہا',
+// ─── گھر ─────────────────────────────────────────
+'گھر جلدی آ جاؤ','گھر وچ سب خیریت اے','گھر دی یاد آندی اے',
+'گھر ای جنت اے','گھر دا کھانا سب توں چنگا','گھر والیاں نوں سلام',
+// ─── ٹھیک ─────────────────────────────────────────
+'ٹھیک اے کوئی گل نہیں','ٹھیک ہو جاؤگے فکر نہ کرو','ٹھیک اے آ جاؤ کل',
+'ٹھیک اے میں آواں گا','ٹھیک اے ساری گل سنو','ٹھیک اے تہاڈی مرضی',
+// ─── کیا / کداں / کِتھے ──────────────────────────
+'کیا حال اے تہاڈا؟','کیا گل اے یار؟','کیا تُسی ٹھیک ہو؟',
+'کیا تُسی آ سکدے ہو؟','کیا تہانوں پتہ اے؟','کیا کرنا اے تُسی دسو',
+'کداں ہو تسی؟','کداں چل رہا اے کم؟','کداں گزر رہی اے زندگی؟',
+'کِتھے گئے ہو تسی؟','کِتھے جانا اے تہانوں؟','کِتھوں آئے ہو تسی؟',
+'کدوں آؤگے تسی؟','کدوں ملاں گے دوبارہ؟','کدوں تک رہو گے ایتھے؟',
+// ─── ہاں / نہیں ──────────────────────────────────
+'ہاں میں آواں گا ضرور','ہاں ٹھیک اے گل سنو','ہاں مینوں پتہ اے',
+'ہاں یار تُسی سہی کہہ رہے ہو','ہاں اللہ دا شکر اے',
+'نہیں یار ایہ سہی نہیں','نہیں میں نہیں جا سکدا','نہیں ایہ گل ٹھیک نہیں',
+'نہیں ہالے وقت اے','نہیں تُسی غلطی کر رہے ہو',
+// ─── چنگا ─────────────────────────────────────────
+'چنگا ہویا تسی آ گئے','چنگا اے رہو ایتھے','چنگا اے میں سمجھ گیا',
+'چنگا بندہ ہمیشہ کامیاب ہوندا اے','چنگا اخلاق سب توں وڈی دولت اے',
+// ─── بہت ──────────────────────────────────────────
+'بہت شکریہ تہاڈا','بہت چنگا کیتا تسی نے','بہت دن ہو گئے ملے نوں',
+'بہت یاد آ رہے ہو تسی','بہت خوشی ہوئی مل کے','بہت مہربانی تہاڈی',
+'بہت وڈا دل اے تہاڈا','بہت محنت کرو یار','بہت سوہنی گل کیتی تسی',
+// ─── اللہ / خدا ──────────────────────────────────
+'اللہ تہانوں خوش رکھے','اللہ دا شکر اے سب ٹھیک اے','اللہ نے چاہیا تاں ضرور ہوئے گا',
+'اللہ ہر مصیبت توں بچائے','اللہ دی رحمت ہر پاسے اے','اللہ اکبر سب کامیابیاں اللہ دیندا اے',
+'خدا کرے سب خوش رہو','خدا دا واسطہ سچ دسو','خدا نے چاہیا تاں سب ٹھیک ہوئے گا',
+// ─── محبت / پیار ─────────────────────────────────
+'پیار نال بولیا کرو','پیار وچ سچائی ہوندی اے','پیار ای زندگی دا مطلب اے',
+'محبت کدی نہیں مردی','محبت سچی ہووے تاں سب کچھ اے','محبت وچ بہت طاقت اے',
+// ─── وقت ──────────────────────────────────────────
+'وقت بہت قیمتی اے ضائع نہ کرو','وقت آنے دو سب ٹھیک ہوئے گا',
+'وقت نے سب کچھ بدل دتا','وقت دے نال سب سمجھ آندی اے',
+// ─── زندگی ────────────────────────────────────────
+'زندگی بہت چھوٹی اے خوش رہو','زندگی وچ محنت ضروری اے',
+'زندگی وچ چنگے بندے ملن تاں قسمت چنگی اے','زندگی ہر پل جیو پوری طرح',
+// ─── پنجاب / پنجابی ──────────────────────────────
+'پنجاب ساڈی ماں اے','پنجابی بولو مان نال','پنجاب دی مٹی سوہنی اے',
+'پنجابی زبان بہت مٹھی اے','پنجاب زندہ باد','پنجابی کلچر بہت امیر اے',
+// ─── ماں / باپ / خاندان ──────────────────────────
+'ماں دا پیار سب توں وڈا اے','ماں دے پیر وچ جنت اے',
+'باپ دی محبت بے مثال اے','باپ دی گل مننی چاہیدی اے',
+'خاندان ای سچی دولت اے','خاندان دا ساتھ ہووے تاں کچھ وی اوکھا نہیں',
+// ─── دل ──────────────────────────────────────────
+'دل کردا اے تینوں ملاں','دل توں دعا کردا آں','دل نال کم کرو',
+'دل صاف رکھو ہمیشہ','دل وچ کدی بُرا نہ رکھو',
+// ─── رات / دن / صبح / شام ────────────────────────
+'رات نوں جلدی سوؤ','رات بہت ہو گئی چلدے آں','رات دا کھانا کھایا؟',
+'دن چڑھیا اے کم شروع کرو','دن بہت چنگا گزریا','دن وچ وقفہ لؤ آرام کرو',
+'صبح دی نماز پڑھو','صبح جلدی اُٹھو','صبح دا ناشتہ ضروری اے',
+'شام نوں سیر کرو','شام بہت سوہنی اے اج','شام نوں ملاں گے انشاءاللہ',
+// ─── اج / کل / پرسوں ─────────────────────────────
+'اج موسم بہت چنگا اے','اج بہت خوشی دا دن اے','اج ملنے آ جاؤ',
+'اج دا کم اج ای کرو','اج میں بہت خوش آں','اج کجھ خاص لگدا اے',
+'کل ضرور آواں گا','کل ملاں گے انشاءاللہ','کل بارش آئی سی',
+'پرسوں آنا ہاں','پرسوں دھُپ نکلے گی',
+// ─── شکریہ / سلام / معافی ────────────────────────
+'شکریہ بہت بہت تہاڈا','شکریہ تہاڈی مدد لئی','شکریہ اینی چنگی گل کرن لئی',
+'سلام تہانوں سارے خاندان نوں','سلام کرو وڈیاں نوں ہمیشہ',
+'معافی منگنا کمزوری نہیں بلکہ طاقت اے','معافی کر دیو مینوں غلطی ہوئی',
+// ─── کم / محنت / پڑھائی ─────────────────────────
+'کم کرو محنت نال','کم توں جی نہیں چُراؤنا چاہیدا','کم ای عبادت اے',
+'محنت کدی ضائع نہیں جاندی','محنت نال سب کچھ مل سکدا اے',
+'پڑھائی وچ دل لاؤ','پڑھ لکھ کے ملک دا نام روشن کرو',
+// ─── سیاست / ملک ─────────────────────────────────
+'پاکستان زندہ باد','پاکستان ساڈا گھر اے','پاکستان ترقی کرے گا انشاءاللہ',
+// ─── دوا / صحت ────────────────────────────────────
+'صحت ہے تاں سب کجھ اے','صحت دا خیال رکھو','دوا وقت تے لؤ',
+// ─── کھانا / پانی ────────────────────────────────
+'کھانا کھا لیا؟','کھانا تیار اے آ جاؤ','کھانا بہت مزیدار اے اج',
+'پانی پیو صحت چنگی رہے گی','پانی ضرور پیو دن وچ',
+// ─── مذاق / خوشی ─────────────────────────────────
+'ہس کے جیو زندگی','ہسنا صحت لئی چنگا اے','خوش رہو خوشیاں ونڈو',
+'خوشی ونڈن نال ودھدی اے','مسکراتے رہو ہمیشہ',
+// ─── رشتے ─────────────────────────────────────────
+'بھائی نال پیار کرو','بھین دا خیال رکھو','بیٹے نوں چنگی تعلیم دیو',
+'بیٹی گھر دی رونق ہوندی اے','ماپیاں دی خدمت کرو',
+// ─── فلسفہ / سوچ ─────────────────────────────────
+'سوچ کے بولو پر بولو ضرور','سوچ چنگی ہووے تاں زندگی چنگی لگدی اے',
+'ہر مشکل دے بعد آسانی آندی اے','ہر رات دے بعد سویرا آندا اے',
+'ہمت رکھو کامیابی ملے گی','حوصلہ رکھو ہمیشہ',
+'جتھے چاہ اوتھے راہ','جو بیجو گے اوہی کٹوگے',
+'نیکی کرو دریا وچ پاؤ','نیکی دا پھل ضرور ملدا اے',
+'صبر کرو اللہ صابراں دے نال اے','صبر دا پھل مٹھا ہوندا اے',
+'سچ بولو ہمیشہ چاہے جو وی ہو','سچائی دی ہمیشہ جت ہوندی اے'
+];
+
+// ─── bigram next-word table ──────────────────────────────
+const BIGRAMS = {
+'تسی':['کیا','کداں','ٹھیک','بہت','میرے','کِتھے','کدوں','آ','جا','سمجھ','دسو','پیارے'],
+'میں':['ٹھیک','تہانوں','اج','کل','گھر','کم','تھکیا','پانی','روٹی','آواں','جانا','سوچاں'],
+'ساڈا':['پنجاب','گھر','خاندان','رشتہ','کم','مستقبل','وطن'],
+'ساڈی':['ماں','زبان','دوستی','مٹی'],
+'اوہ':['بہت','اج','میرا','ہمیشہ','بندہ','چنگا','دور','خوش'],
+'ایہ':['گل','کم','بہت','میرا','ساڈی','کیا','سچ','موسم'],
+'اسی':['رل','پنجاب','سب','مل','کدی','خوشیاں','اپنی'],
+'یار':['تُسی','کدوں','بہت','اج','دل','تینوں','زندگی','تیرے'],
+'گھر':['جلدی','وچ','دی','ای','والیاں','دا','کا'],
+'بہت':['شکریہ','چنگا','دن','یاد','خوشی','مہربانی','وڈا','محنت','سوہنی'],
+'اللہ':['تہانوں','دا','نے','ہر','اکبر','دی','کرے'],
+'پیار':['نال','وچ','ای','کدی','سچا'],
+'محبت':['کدی','سچی','وچ'],
+'وقت':['بہت','آنے','نے','دے'],
+'زندگی':['بہت','وچ','ہر','دا'],
+'پنجاب':['ساڈی','دی','زندہ','ترقی'],
+'ماں':['دا','دے','دی'],
+'باپ':['دی','دا','دے'],
+'دل':['کردا','توں','نال','صاف','وچ'],
+'کام':['کرو','نال','وچ'],
+'کل':['ضرور','ملاں','آواں','بارش'],
+'اج':['موسم','بہت','ملنے','دا','کجھ','میں'],
+'شکریہ':['بہت','تہاڈا','تہاڈی'],
+'سلام':['تہانوں','کرو'],
+'ہاں':['میں','ٹھیک','مینوں','یار','اللہ'],
+'نہیں':['یار','میں','ایہ','ہالے','تُسی'],
+'چنگا':['ہویا','اے','بندہ','اخلاق','رہو'],
+'ٹھیک':['اے','ہو','ہوئے','اے','نہیں'],
+'رات':['نوں','بہت','دا'],
+'دن':['چڑھیا','بہت','وچ'],
+'صبح':['دی','جلدی','دا'],
+'شام':['نوں','بہت','نوں'],
+'پنجابی':['بولو','زبان','کلچر'],
+'خاندان':['ای','دا','دی'],
+'صحت':['ہے','دا','چنگی'],
+'کھانا':['کھا','تیار','بہت'],
+'پانی':['پیو','ضرور','پینا'],
+'محنت':['کدی','نال','کرو'],
+'صبر':['کرو','دا','دے'],
+'سچ':['بولو','اے','کہہ'],
+'نیکی':['کرو','دا'],
+'ہمت':['رکھو','نال'],
+};
+
+// ─── prefix → sentence completions ─────────────────────────
+const PREFIX_MAP = {};
+SENTENCES.forEach(s => {
+  for(let i=1;i<=Math.min(4,s.length);i++){
+    const k=s.slice(0,i);
+    if(!PREFIX_MAP[k]) PREFIX_MAP[k]=[];
+    if(PREFIX_MAP[k].length<8) PREFIX_MAP[k].push(s);
+  }
+  const firstWord = s.split(' ')[0];
+  if(!PREFIX_MAP[firstWord]) PREFIX_MAP[firstWord]=[];
+  if(PREFIX_MAP[firstWord].length<8) PREFIX_MAP[firstWord].push(s);
+});
+
+const TRANSLIT={
+  tusi:'تسی',tusian:'تسیاں',kidan:'کداں',kida:'کداں',theek:'ٹھیک',thik:'ٹھیک',
+  haan:'ہاں',nahi:'نہیں',nai:'نئیں',gall:'گل',changa:'چنگا',pyar:'پیار',
+  ghar:'گھر',yaar:'یار',aa:'آ',hun:'ہُن',sada:'ساڈا',saada:'ساڈا',
+  aaj:'اج',aj:'اج',kal:'کل',subah:'صبح',raat:'رات',sham:'شام',
+  main:'میں',oh:'اوہ',asi:'اسی',dost:'دوست',maa:'ماں',baap:'باپ',
+  bhai:'بھائی',bhen:'بھین',theekho:'ٹھیک ہو',kivi:'کِویں',kithe:'کِتھے',
+  shukar:'شکر',shukria:'شکریہ',salam:'سلام',allah:'اللہ',
+  ja:'جا',kar:'کر',de:'دے',la:'لا',kha:'کھا',pee:'پی',
+  wada:'وڈا',nika:'نِکا',bahut:'بہت',thora:'تھوڑا',
+  pehlan:'پہلاں',fir:'فیر',tan:'تاں',agar:'اگر',par:'پر',
+  wal:'ول',naal:'نال',ton:'توں',wich:'وچ',mehrbani:'مہربانی',
+  zindagi:'زندگی',waqt:'وقت',din:'دن',Punjab:'پنجاب',
+  muhabbat:'محبت',dil:'دل',kaam:'کام',subho:'صبح',khana:'کھانا',
+  pani:'پانی',roti:'روٹی',dudh:'دُدھ',sabzi:'سبزی',
+  pakistan:'پاکستان',sehat:'صحت',padhai:'پڑھائی',
+  himmat:'ہمت',sabr:'صبر',sach:'سچ',neeki:'نیکی',
+  khushi:'خوشی',udas:'اداس',hans:'ہنس',muskrao:'مسکراؤ'
+};
+
+// ─── word frequency for autocomplete ────────────────────────
+const WORD_FREQ = {
+'تسی':100,'میں':95,'ساڈا':80,'اوہ':85,'ایہ':90,'اسی':75,'ہاں':70,
+'نہیں':68,'کیا':72,'بہت':78,'چنگا':65,'گھر':60,'یار':58,'دوست':55,
+'پیار':52,'اللہ':88,'شکریہ':50,'سلام':55,'ٹھیک':62,'محبت':48,
+'وقت':45,'زندگی':47,'پنجاب':50,'ماں':55,'باپ':50,'دل':52,'کم':45,
+'صبح':40,'شام':42,'رات':44,'دن':46,'اج':58,'کل':50,'پرسوں':30,
+'محنت':38,'صبر':36,'سچ':40,'نیکی':35,'ہمت':33,'خوشی':42,'مسکراؤ':28,
+'پانی':38,'کھانا':40,'روٹی':36,'صحت':34,'پڑھائی':30,'پاکستان':48,
+'آ':55,'جا':52,'کر':50,'دے':48,'لے':45,'بول':40,'سن':38,
+'ور':'35','فیر':42,'ہُن':44,'پہلاں':36,'بعد':38,'اگر':40,'تاں':42,
+};
+
+let currentLang='punjabi', typedText='', composing='', darkMode=false;
+
+function getLangLabel(){
+  return {punjabi:'پنجابی شاہمکھی',urdu:'اردو',english:'English',auto:'Auto'}[currentLang];
+}
+
+function setLang(l){
+  currentLang=l; composing='';
+  document.querySelectorAll('.lang-pill').forEach(b=>b.classList.remove('active'));
+  const lmap={punjabi:'پنجابی',urdu:'اردو',english:'EN',auto:'Auto'};
+  document.querySelectorAll('.lang-pill').forEach(b=>{if(b.textContent===lmap[l])b.classList.add('active');});
+  document.getElementById('mlabel').textContent=getLangLabel();
+  buildKeyboard(); updateDisplay(); predict('');
+}
+
+function toggleDark(){
+  darkMode=!darkMode;
+  document.getElementById('keyboard').classList.toggle('dk',darkMode);
+  document.querySelectorAll('.key').forEach(k=>k.classList.toggle('dk',darkMode));
+  document.getElementById('tbtn').textContent=darkMode?'☀️':'🌙';
+}
+
+function buildKeyboard(){
+  const kb=document.getElementById('keyboard'); kb.innerHTML='';
+  const layout=LAYOUTS[currentLang==='auto'?'punjabi':currentLang];
+  layout.forEach(row=>{
+    const rDiv=document.createElement('div'); rDiv.className='kb-row';
+    row.forEach(kd=>{
+      const btn=document.createElement('div');
+      btn.className='key'+(kd.eng?' eng':'')+(darkMode?' dk':'');
+      btn.innerHTML=`<span class="pc">${kd.p}</span>`;
+      if(kd.s) btn.innerHTML+=`<span class="sc">${kd.s}</span>`;
+      if(kd.a&&kd.a.length) btn.innerHTML+=`<div class="ad"></div>`;
+      btn.addEventListener('pointerdown',()=>{pressKey(kd.p);btn.classList.add('pressed');setTimeout(()=>btn.classList.remove('pressed'),140);});
+      rDiv.appendChild(btn);
+    });
+    kb.appendChild(rDiv);
+  });
+  const ar=document.createElement('div'); ar.className='kb-row';
+  const mk=(cls,label,fn)=>{
+    const b=document.createElement('div');
+    b.className='key '+cls+(darkMode?' dk':'');
+    b.innerHTML=`<span class="pc" style="font-size:14px;font-family:var(--font-sans)">${label}</span>`;
+    b.addEventListener('pointerdown',fn); ar.appendChild(b);
+  };
+  mk('spl','🌐',()=>{ const ls=['punjabi','urdu','english','auto']; setLang(ls[(ls.indexOf(currentLang)+1)%ls.length]); });
+  const spBtn=document.createElement('div');
+  spBtn.className='key sp'+(darkMode?' dk':'');
+  spBtn.innerHTML=`<span>${getLangLabel()}</span>`;
+  spBtn.addEventListener('pointerdown',pressSpace); ar.appendChild(spBtn);
+  mk('spl','⌫',pressDelete);
+  const entBtn=document.createElement('div');
+  entBtn.className='key ent'; entBtn.innerHTML='<span style="font-size:15px">↵</span>';
+  entBtn.addEventListener('pointerdown',pressEnter); ar.appendChild(entBtn);
+  kb.appendChild(ar);
+}
+
+function pressKey(ch){
+  composing+=ch; updateDisplay(); predict(composing);
+}
+function pressSpace(){
+  if(composing){typedText+=composing+' ';composing='';}
+  else typedText+=' ';
+  updateDisplay();
+  const lastWord=typedText.trim().split(/\s+/).pop()||'';
+  const nw=BIGRAMS[lastWord]||getTopWords(5);
+  showCandidates(nw.slice(0,5),'next');
+  updateHint('اگلا لفظ چنو یا ٹائپ کرتے رہو');
+}
+function pressDelete(){
+  if(composing.length){composing=composing.slice(0,-1);updateDisplay();predict(composing);}
+  else if(typedText.length){typedText=typedText.slice(0,-1);updateDisplay();}
+}
+function pressEnter(){
+  if(composing)typedText+=composing+'\n';else typedText+='\n';
+  composing='';updateDisplay();showCandidates([]);
+}
+function commitCandidate(text){
+  typedText+=text+' '; composing=''; updateDisplay();
+  const lastWord=text.trim().split(/\s+/).pop()||'';
+  const nw=BIGRAMS[lastWord]||getTopWords(5);
+  showCandidates(nw.slice(0,5),'next');
+  updateHint('جملہ مکمل ہویا — اگلا لفظ چنو');
+}
+
+function predict(comp){
+  if(!comp){showCandidates(getTopWords(5),'next');updateHint('ایک حرف ٹائپ کریں — جملے نظر آئیں گے');return;}
+
+  const isRoman=/^[a-zA-Z]+$/.test(comp);
+  const results=[];
+  const hints=[];
+
+  if((currentLang==='punjabi'||currentLang==='auto')&&isRoman){
+    const tKey=comp.toLowerCase();
+    // exact transliteration
+    if(TRANSLIT[tKey]) results.push(TRANSLIT[tKey]);
+    // prefix transliteration
+    Object.entries(TRANSLIT).filter(([k])=>k.startsWith(tKey)&&k!==tKey)
+      .slice(0,3).forEach(([,v])=>{if(!results.includes(v))results.push(v);});
+    // full sentence transliteration matches
+    SENTENCES.filter(s=>TRANSLIT[tKey]&&s.startsWith(TRANSLIT[tKey]))
+      .slice(0,3).forEach(s=>{if(!hints.includes(s))hints.push(s);});
+    updateHint(results.length?`ترجمہ: ${results[0]}`:'Roman ٹائپ کریں → Shahmukhi');
+    showCandidates([...results,...hints.map(s=>s.split(' ')[0]).filter(w=>!results.includes(w))].slice(0,5),'translit');
+    if(hints.length) showSentenceHints(hints.slice(0,2));
+    return;
+  }
+
+  // Shahmukhi prefix: sentence-level completions
+  const sentMatches=(PREFIX_MAP[comp]||[]).slice(0,5);
+  // word-level completions
+  const wordMatches=Object.keys(WORD_FREQ).filter(w=>w.startsWith(comp)&&w!==comp)
+    .sort((a,b)=>(WORD_FREQ[b]||0)-(WORD_FREQ[a]||0)).slice(0,5);
+
+  const allCandidates=[...new Set([comp,...wordMatches,...sentMatches.map(s=>s.split(' ')[0])])].slice(0,5);
+  showCandidates(allCandidates,'prefix');
+  if(sentMatches.length){
+    showSentenceHints(sentMatches.slice(0,3));
+    updateHint(`${sentMatches.length} جملے ملے — نیچے کلک کرو`);
+  } else {
+    updateHint(wordMatches.length?`${wordMatches.length} الفاظ ملے`:'ٹائپ کرتے رہو...');
+  }
+}
+
+function showSentenceHints(sentences){
+  const hint=document.getElementById('hint-bar');
+  hint.innerHTML='';
+  sentences.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText='cursor:pointer;padding:2px 0;color:var(--color-text-secondary);font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary);direction:rtl;';
+    d.innerHTML=`<span style="color:#2ECC71;margin-left:4px">${i+1}.</span>${s}`;
+    d.addEventListener('pointerdown',()=>commitCandidate(s));
+    hint.appendChild(d);
+  });
+}
+
+function updateHint(msg){
+  const h=document.getElementById('hint-bar');
+  if(h.children.length>1) return; // don't overwrite sentence hints
+  h.style.cssText='padding:6px 14px;font-size:11px;color:var(--color-text-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);direction:rtl;min-height:28px;line-height:1.6;background:var(--color-background-secondary)';
+  h.textContent=msg;
+}
+
+function showCandidates(preds, type){
+  const bar=document.getElementById('candidate-bar');
+  bar.innerHTML='<div class="accent-strip"></div>';
+  if(!preds||!preds.length){bar.innerHTML+='<div class="candidate-ph">شروع کریں...</div>';return;}
+  preds.filter(Boolean).slice(0,6).forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='candidate'+(i===0?' primary':'');
+    div.textContent=p;
+    div.addEventListener('pointerdown',()=>commitCandidate(p));
+    bar.appendChild(div);
+    if(i<preds.length-1){const sep=document.createElement('div');sep.style.cssText='width:0.5px;height:22px;background:var(--color-border-tertiary);align-self:center;flex-shrink:0';bar.appendChild(sep);}
+  });
+}
+
+function getTopWords(n){
+  return Object.entries(WORD_FREQ).sort((a,b)=>b[1]-a[1]).slice(0,n).map(e=>e[0]);
+}
+
+function updateDisplay(){
+  const d=document.getElementById('text-display');
+  const isEng=currentLang==='english';
+  d.className=isEng?'ltr-mode':'';
+  const safe=typedText.replace(/</g,'&lt;').replace(/\n/g,'<br>');
+  const comp=composing?`<span class="composing">${composing}</span>`:'';
+  d.innerHTML=isEng?`${safe}${comp}<span class="cursor"></span>`
+    :`<span class="cursor"></span>${comp}${safe}`;
+}
+
+buildKeyboard(); updateDisplay(); predict('');
+</script>
