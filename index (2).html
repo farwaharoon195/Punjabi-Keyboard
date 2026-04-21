@@ -1,0 +1,620 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+#kb-app {
+  background: var(--color-background-secondary);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  max-width: 680px;
+}
+
+#phone-frame {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+#text-area-wrapper {
+  padding: 12px 14px;
+  min-height: 80px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  position: relative;
+}
+
+#text-display {
+  font-size: 16px;
+  color: var(--color-text-primary);
+  line-height: 1.7;
+  min-height: 40px;
+  word-break: break-all;
+  direction: rtl;
+  text-align: right;
+  font-family: 'Noto Nastaliq Urdu', 'Arabic UI Text', Arial, sans-serif;
+}
+
+#text-display .cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: #2ECC71;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+  margin-right: 1px;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+#text-display .composing {
+  border-bottom: 2px solid #2ECC71;
+  color: #2ECC71;
+}
+
+#lang-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--color-background-secondary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.lang-pill {
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  transition: all 0.15s;
+}
+
+.lang-pill.active {
+  background: #2ECC71;
+  border-color: #2ECC71;
+  color: #fff;
+}
+
+#candidate-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: 42px;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--color-background-primary);
+}
+
+#candidate-bar::-webkit-scrollbar { display: none; }
+
+.accent-strip {
+  width: 3px;
+  height: 42px;
+  background: #2ECC71;
+  flex-shrink: 0;
+}
+
+.candidate {
+  padding: 0 14px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  border-right: 0.5px solid var(--color-border-tertiary);
+  font-family: 'Noto Nastaliq Urdu', 'Arabic UI Text', Arial, sans-serif;
+  transition: background 0.1s;
+  flex-shrink: 0;
+}
+
+.candidate:hover { background: var(--color-background-secondary); }
+.candidate:active { background: #e8f8ef; }
+
+.candidate.primary {
+  color: #2ECC71;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.candidate-placeholder {
+  padding: 0 14px;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+#keyboard {
+  background: #ECEFF1;
+  padding: 4px 4px 8px;
+  user-select: none;
+}
+
+#keyboard.dark-kb {
+  background: #1A1A1A;
+}
+
+.kb-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  justify-content: center;
+}
+
+.key {
+  background: #fff;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 #B0BEC5;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.05s, box-shadow 0.05s;
+  height: 42px;
+  min-width: 30px;
+  flex: 1;
+  max-width: 54px;
+}
+
+.key.dark-kb {
+  background: #2D2D2D;
+  box-shadow: 0 2px 0 #111;
+  color: #fff;
+}
+
+.key:active, .key.pressed {
+  transform: scale(0.93);
+  box-shadow: 0 0px 0 #B0BEC5;
+}
+
+.key .primary-char {
+  font-size: 17px;
+  line-height: 1;
+  font-family: 'Noto Nastaliq Urdu', 'Arabic UI Text', Arial, sans-serif;
+  color: inherit;
+}
+
+.key.eng .primary-char {
+  font-family: var(--font-sans);
+  font-size: 15px;
+}
+
+.key .sec-char {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  font-size: 9px;
+  color: #9E9E9E;
+  font-family: var(--font-sans);
+}
+
+.key .alt-dot {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  height: 3px;
+  background: #2ECC71;
+  border-radius: 50%;
+}
+
+.key.special {
+  background: #CFD8DC;
+  font-size: 13px;
+  color: #424242;
+  flex: 1.5;
+  max-width: 64px;
+}
+
+.key.space-key {
+  flex: 5;
+  max-width: 200px;
+  font-size: 12px;
+  color: #9E9E9E;
+  font-family: var(--font-sans);
+}
+
+.key.action-enter {
+  background: #2ECC71;
+  color: #fff;
+  flex: 1.5;
+  max-width: 64px;
+  font-size: 16px;
+}
+
+.key.lang-key {
+  flex: 1.5;
+  max-width: 60px;
+  font-size: 16px;
+}
+
+#mode-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #2ECC71; }
+
+#long-press-popup {
+  position: absolute;
+  background: #333;
+  border-radius: 8px;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  z-index: 10;
+  display: none;
+  transform: translateY(-110%);
+  left: 0;
+  top: 0;
+}
+
+.alt-key {
+  padding: 8px 12px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Noto Nastaliq Urdu', 'Arabic UI Text', Arial, sans-serif;
+}
+.alt-key:hover { background: rgba(255,255,255,0.15); }
+
+#theme-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+}
+</style>
+
+<div id="kb-app">
+
+  <div id="phone-frame">
+
+    <div id="lang-bar">
+      <div id="mode-info"><div class="dot"></div><span id="mode-label">پنجابی شاہمکھی</span></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="lang-pill active" onclick="setLang('punjabi')">پنجابی</button>
+        <button class="lang-pill" onclick="setLang('urdu')">اردو</button>
+        <button class="lang-pill" onclick="setLang('english')">EN</button>
+        <button class="lang-pill" onclick="setLang('auto')">Auto</button>
+        <button id="theme-btn" onclick="toggleDark()">🌙</button>
+      </div>
+    </div>
+
+    <div id="text-area-wrapper">
+      <div id="text-display"><span class="cursor"></span></div>
+    </div>
+
+    <div id="candidate-bar">
+      <div class="accent-strip"></div>
+      <div class="candidate-placeholder">شروع کریں...</div>
+    </div>
+
+    <div id="keyboard"></div>
+
+  </div>
+
+</div>
+
+<script>
+const LAYOUTS = {
+  punjabi: [
+    [
+      {p:'ق',s:'q',a:['ك']},{p:'و',s:'w',a:['ؤ']},{p:'ع',s:'e',a:['ء','ئ']},
+      {p:'ط',s:'t',a:['ٹ','ت']},{p:'ظ',s:'z',a:['ز']},{p:'ذ',s:'d',a:['ڈ','د']},
+      {p:'ز',s:'z',a:['ظ','ذ']},{p:'ر',s:'r',a:['ڑ']},{p:'ڑ',s:'R'}
+    ],
+    [
+      {p:'ا',s:'a',a:['آ','إ','أ']},{p:'آ',s:'A'},{p:'ب',s:'b'},{p:'پ',s:'p'},
+      {p:'ت',s:'t',a:['ٹ','ط']},{p:'ٹ',s:'T'},{p:'ث',s:'s',a:['س','ص']},
+      {p:'چ',s:'c',a:['ج']},{p:'ح',s:'h',a:['ہ','ھ']},{p:'خ',s:'x'}
+    ],
+    [
+      {p:'د',s:'d',a:['ڈ']},{p:'ڈ',s:'D'},{p:'س',s:'s',a:['ش','ص','ث']},
+      {p:'ش',s:'sh'},{p:'ص',s:'S'},{p:'ف',s:'f'},{p:'غ',s:'gh',a:['ع']},
+      {p:'ک',s:'k',a:['ق','گ']},{p:'گ',s:'g'},{p:'ل',s:'l'}
+    ],
+    [
+      {p:'م',s:'m'},{p:'ن',s:'n',a:['ں','ڻ']},{p:'ں',s:'N'},{p:'و',s:'v',a:['ؤ']},
+      {p:'ہ',s:'h',a:['ح','ھ']},{p:'ی',s:'y',a:['ے','ئ']},{p:'ے',s:'Y'},
+      {p:'ھ',s:'h'},{p:'۔',s:'.',a:['.',',','؟','!']},{p:'،',s:','}
+    ]
+  ],
+  urdu: [
+    [
+      {p:'ق',s:'q'},{p:'و',s:'w',a:['ؤ']},{p:'ع',s:'e'},{p:'ر',s:'r',a:['ڑ']},
+      {p:'ی',s:'y',a:['ے','ئ']},{p:'ء',s:"'"},{p:'ا',s:'a',a:['آ']},
+      {p:'ہ',s:'h',a:['ح','ھ']},{p:'ت',s:'t',a:['ط','ٹ']}
+    ],
+    [
+      {p:'ص',s:'S',a:['س','ث']},{p:'ث',s:'s'},{p:'د',s:'d',a:['ڈ','ذ']},
+      {p:'ط',s:'T',a:['ت','ٹ']},{p:'ب',s:'b'},{p:'پ',s:'p'},
+      {p:'ج',s:'j',a:['چ']},{p:'چ',s:'c'},{p:'ز',s:'z',a:['ذ','ظ','ض']}
+    ],
+    [
+      {p:'ش',s:'sh',a:['س']},{p:'س',s:'s',a:['ش','ص']},{p:'ک',s:'k',a:['گ','ق']},
+      {p:'گ',s:'g'},{p:'ل',s:'l'},{p:'م',s:'m'},
+      {p:'ن',s:'n',a:['ں']},{p:'ں',s:'N'},{p:'و',s:'v'},{p:'ے',s:'Y'}
+    ],
+    [
+      {p:'ظ',s:'Z'},{p:'ض',s:'Z'},{p:'ذ',s:'D'},{p:'خ',s:'x'},
+      {p:'ف',s:'f'},{p:'غ',s:'gh'},{p:'آ',s:'aa',a:['ا']},
+      {p:'۔',s:'.',a:['.','؟']},{p:'،',s:','}
+    ]
+  ],
+  english: [
+    ['q','w','e','r','t','y','u','i','o','p'].map(c=>({p:c,s:c.toUpperCase(),eng:true})),
+    ['a','s','d','f','g','h','j','k','l'].map(c=>({p:c,s:c.toUpperCase(),eng:true})),
+    ['z','x','c','v','b','n','m'].map(c=>({p:c,s:c.toUpperCase(),eng:true}))
+  ]
+};
+
+const TRANSLIT = {
+  tusi:'تسی',tusian:'تسیاں',kidan:'کداں',kida:'کداں',theek:'ٹھیک',thik:'ٹھیک',
+  haan:'ہاں',nahi:'نہیں',nai:'نئیں',gall:'گل',changa:'چنگا',pyar:'پیار',
+  ghar:'گھر',yaar:'یار',aa:'آ',hun:'ہُن',sada:'ساڈا',baad:'بعد',
+  aaj:'اج',aj:'اج',kal:'کل',subah:'صبح',raat:'رات',sham:'شام',
+  main:'میں',oh:'اوہ',asi:'اسی',dost:'دوست',maa:'ماں',baap:'باپ',
+  bhai:'بھائی',bhen:'بھین',theekho:'ٹھیک ہو',kivi:'کِویں',kithe:'کِتھے',
+  shukar:'شکر',shukria:'شکریہ',salam:'سلام',allah:'اللہ',
+  ja:'جا',kar:'کر',de:'دے',la:'لا',kha:'کھا',pee:'پی',wada:'وڈا',
+  nika:'نِکا',bahut:'بہت',thora:'تھوڑا',pehlan:'پہلاں',fir:'فیر',
+  tan:'تاں',agar:'اگر',par:'پر',wal:'ول',naal:'نال',ton:'توں',wich:'وچ'
+};
+
+const PREDICTIONS = {
+  punjabi: {
+    '': ['تسی','میں','ساڈا','ایہ','اوہ'],
+    'ت': ['تسی','تاں','تھوڑا','ٹھیک','توں'],
+    'تس': ['تسی','تسیں'],
+    'تسی': ['تسی','کیا حال اے','کداں ہو','ٹھیک ہو'],
+    'م': ['میں','ماں','مِٹھا','محبت'],
+    'می': ['میں'],
+    'میں': ['آواں گا','ٹھیک آں','سمجھ','جانا','کرنا'],
+    'س': ['ساڈا','سب','سلام','شکریہ','سوہنا'],
+    'سا': ['ساڈا','ساڈی','ساڈے'],
+    'ک': ['کیا','کداں','کدوں','کوئی','کرنا','کول'],
+    'کی': ['کیا','کیوں','کیداں'],
+    'کیا': ['حال اے','تسی','کرنا','ہویا'],
+    'ا': ['اسی','ایہ','اللہ','اج','اگر'],
+    'ب': ['بہت','بندہ','بھائی','بعد'],
+    'گ': ['گھر','گل','گیا'],
+    'ہ': ['ہاں','ہُن','ہور','ہے'],
+    'ن': ['نہیں','نال','نکا','ننھا'],
+    'پ': ['پنجاب','پیار','پانی','پڑھنا','پہلاں'],
+    'چ': ['چنگا','چل','چار'],
+    'ی': ['یار','یاری','یہ'],
+    'ر': ['رات','رہنا','رل']
+  },
+  urdu: {
+    '': ['آپ','ہم','یہ','وہ','کیا'],
+    'آ': ['آپ','آج','آنا','آئیں'],
+    'ہ': ['ہم','ہیں','ہے','ہاں','ہوں'],
+    'ک': ['کیا','کیسے','کون','کب','کہاں'],
+    'م': ['مجھے','میں','محبت'],
+    'ش': ['شکریہ','شام']
+  },
+  english: {
+    '': ['the','a','is','and','you'],
+    't': ['the','that','this','to','time'],
+    'th': ['the','that','this','they','their'],
+    'i': ['is','in','it','I','into'],
+    'y': ['you','your','yes','yet'],
+    'h': ['have','how','he','her','hello'],
+    'a': ['and','are','as','at','about'],
+    's': ['some','she','so','said','see'],
+    'w': ['with','which','when','we','what']
+  }
+};
+
+let currentLang = 'punjabi';
+let typedText = '';
+let composing = '';
+let darkMode = false;
+
+function getLangLabel() {
+  return {punjabi:'پنجابی شاہمکھی', urdu:'اردو', english:'English', auto:'Auto'}[currentLang];
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  composing = '';
+  document.querySelectorAll('.lang-pill').forEach(b => b.classList.remove('active'));
+  const labels = {punjabi:'پنجابی', urdu:'اردو', english:'EN', auto:'Auto'};
+  document.querySelectorAll('.lang-pill').forEach(b => {
+    if(b.textContent === labels[lang]) b.classList.add('active');
+  });
+  document.getElementById('mode-label').textContent = getLangLabel();
+  buildKeyboard();
+  updateDisplay();
+  showCandidates('');
+}
+
+function toggleDark() {
+  darkMode = !darkMode;
+  document.getElementById('keyboard').classList.toggle('dark-kb', darkMode);
+  document.querySelectorAll('.key').forEach(k => k.classList.toggle('dark-kb', darkMode));
+  document.getElementById('theme-btn').textContent = darkMode ? '☀️' : '🌙';
+}
+
+function buildKeyboard() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  const layout = LAYOUTS[currentLang === 'auto' ? 'punjabi' : currentLang];
+  const isEng = currentLang === 'english';
+
+  layout.forEach(row => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'kb-row';
+    row.forEach(kd => {
+      const btn = document.createElement('div');
+      btn.className = 'key' + (isEng || kd.eng ? ' eng' : '') + (darkMode ? ' dark-kb' : '');
+      btn.innerHTML = `<span class="primary-char">${kd.p}</span>`;
+      if (kd.s) btn.innerHTML += `<span class="sec-char">${kd.s}</span>`;
+      if (kd.a && kd.a.length) btn.innerHTML += `<div class="alt-dot"></div>`;
+      btn.addEventListener('pointerdown', () => pressKey(kd.p));
+      btn.addEventListener('pointerdown', () => { btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'),150); });
+      rowDiv.appendChild(btn);
+    });
+    kb.appendChild(rowDiv);
+  });
+
+  const actionRow = document.createElement('div');
+  actionRow.className = 'kb-row';
+
+  const langBtn = document.createElement('div');
+  langBtn.className = 'key special lang-key' + (darkMode?' dark-kb':'');
+  langBtn.innerHTML = '<span class="primary-char" style="font-size:16px">🌐</span>';
+  langBtn.addEventListener('pointerdown', () => {
+    const langs = ['punjabi','urdu','english','auto'];
+    setLang(langs[(langs.indexOf(currentLang)+1)%langs.length]);
+  });
+  actionRow.appendChild(langBtn);
+
+  const spaceBtn = document.createElement('div');
+  spaceBtn.className = 'key space-key' + (darkMode?' dark-kb':'');
+  spaceBtn.innerHTML = `<span>${getLangLabel()}</span>`;
+  spaceBtn.addEventListener('pointerdown', pressSpace);
+  actionRow.appendChild(spaceBtn);
+
+  const delBtn = document.createElement('div');
+  delBtn.className = 'key special' + (darkMode?' dark-kb':'');
+  delBtn.innerHTML = '<span class="primary-char" style="font-size:14px;font-family:var(--font-sans)">⌫</span>';
+  delBtn.addEventListener('pointerdown', pressDelete);
+  actionRow.appendChild(delBtn);
+
+  const enterBtn = document.createElement('div');
+  enterBtn.className = 'key action-enter';
+  enterBtn.innerHTML = '<span class="primary-char" style="font-size:14px;font-family:var(--font-sans)">↵</span>';
+  enterBtn.addEventListener('pointerdown', pressEnter);
+  actionRow.appendChild(enterBtn);
+
+  kb.appendChild(actionRow);
+}
+
+function pressKey(char) {
+  composing += char;
+  updateDisplay();
+  const lm = PREDICTIONS[currentLang === 'auto' ? 'punjabi' : currentLang] || PREDICTIONS.punjabi;
+  let preds = lm[composing] || lm[composing.slice(0,2)] || lm[composing[0]] || [];
+
+  if ((currentLang === 'punjabi' || currentLang === 'auto') && isLatin(composing)) {
+    const tKey = composing.toLowerCase();
+    const tr = Object.entries(TRANSLIT).filter(([k])=>k.startsWith(tKey)).map(([,v])=>v);
+    const exact = TRANSLIT[tKey];
+    preds = exact ? [exact,...tr.filter(v=>v!==exact),...preds] : [...tr,...preds];
+  }
+  if (!preds.length) preds = getFreqPreds();
+  showCandidates(preds.slice(0,5));
+}
+
+function pressSpace() {
+  if (composing) {
+    typedText += composing + ' ';
+    composing = '';
+  } else {
+    typedText += ' ';
+  }
+  updateDisplay();
+  showCandidates(getFreqPreds());
+}
+
+function pressDelete() {
+  if (composing.length) {
+    composing = composing.slice(0, -1);
+    updateDisplay();
+    const lm = PREDICTIONS[currentLang === 'auto' ? 'punjabi' : currentLang] || PREDICTIONS.punjabi;
+    showCandidates(lm[composing] || lm[composing[0]] || getFreqPreds());
+  } else if (typedText.length) {
+    typedText = typedText.slice(0, -1);
+    updateDisplay();
+  }
+}
+
+function pressEnter() {
+  if (composing) typedText += composing + '\n';
+  else typedText += '\n';
+  composing = '';
+  updateDisplay();
+  showCandidates([]);
+}
+
+function commitCandidate(text) {
+  typedText += text + ' ';
+  composing = '';
+  updateDisplay();
+  const after = getFreqPreds();
+  showCandidates(after);
+}
+
+function updateDisplay() {
+  const display = document.getElementById('text-display');
+  const dir = (currentLang === 'english') ? 'ltr' : 'rtl';
+  display.style.direction = dir;
+  display.style.textAlign = (currentLang === 'english') ? 'left' : 'right';
+  const safe = typedText.replace(/</g,'&lt;').replace(/\n/g,'<br>');
+  const comp = composing ? `<span class="composing">${composing}</span>` : '';
+  display.innerHTML = dir === 'rtl'
+    ? `<span class="cursor"></span>${comp}${safe}`
+    : `${safe}${comp}<span class="cursor"></span>`;
+}
+
+function showCandidates(preds) {
+  const bar = document.getElementById('candidate-bar');
+  bar.innerHTML = '<div class="accent-strip"></div>';
+  if (!preds || !preds.length) {
+    bar.innerHTML += '<div class="candidate-placeholder">شروع کریں...</div>';
+    return;
+  }
+  preds.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'candidate' + (i === 0 ? ' primary' : '');
+    div.textContent = p;
+    div.addEventListener('pointerdown', () => commitCandidate(p));
+    bar.appendChild(div);
+    if (i < preds.length - 1) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'width:0.5px;height:24px;background:var(--color-border-tertiary);align-self:center;flex-shrink:0';
+      bar.appendChild(sep);
+    }
+  });
+}
+
+function getFreqPreds() {
+  const maps = {
+    punjabi:['تسی','میں','ساڈا','ایہ','اوہ','کیا','ہاں','نہیں','گھر','یار'],
+    urdu:['آپ','ہم','یہ','وہ','اور','کیا','ہے','ہیں','کا','کی'],
+    english:['the','you','is','and','have','good','hello','how','ok','yes'],
+    auto:['تسی','میں','ساڈا','ایہ','ٹھیک']
+  };
+  return (maps[currentLang] || maps.punjabi).slice(0,5);
+}
+
+function isLatin(s) { return /^[a-zA-Z]+$/.test(s); }
+
+buildKeyboard();
+showCandidates([]);
+updateDisplay();
+</script>
